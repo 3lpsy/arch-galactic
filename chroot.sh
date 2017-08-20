@@ -18,12 +18,6 @@ pacman -S  zfs-linux
 
 echo "Set Root Password"
 passwd root
-echo "Create sudo group"
-groupadd sudo
-echo "Create new user"
-read USERNAME
-useradd -m sudo -s /bin/bash $USERNAME
-passwd $USERNAME
 
 echo "I hope you added hooks"
 mkinitcpio -o linux
