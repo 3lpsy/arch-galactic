@@ -11,7 +11,10 @@ export MOUNT_PATH="/mnt/galactic"
 
 set -e
 
-mkdir $MOUNT_PATH
+if [[ ! -d $MOUNT_PATH ]]; then
+    echo "Making directory: $MOUNT_PATH"
+    mkdir $MOUNT_PATH
+fi
 
 # parition.sh
 function run_partition() {
