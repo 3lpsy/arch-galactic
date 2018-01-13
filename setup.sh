@@ -252,23 +252,53 @@ function run_nextsteps() {
 }
 
 function run_confirm() {
-    read -p "Continue with $1 (y/n)?" choice
+    read -p "Continue with $1 [Yes(y)/No(n)/Skip(s)]?" choice
     case "$choice" in
-      y|Y ) echo "Continuing";;
+      y|Y ) echo 1;;
+      s|S ) echo 0;;
       n|N ) exit;;
       * ) run_confirm;;
     esac
 }
 
-run_confirm "Run partition.sh"
-run_partition
-run_confirm "Run luks.sh"
-run_luks
-run_confirm "Run open_luks.sh"
-run_open_luks
-run_confirm "Run zfs.sh"
-run_zfs
-run_confirm "Run mount_zfs.sh"
-run_mount_zfs
-run_confirm "Run generatefstab.sh"
-run_generatefstab
+CONTINUE="$(run_confirm 'run_partition')"
+if [[ "$CONTINUE" == "1"]]; then
+    run_partition
+else
+    echo "Skipping..."
+fi
+
+CONTINUE="$(run_confirm 'run_luks')"
+if [[ "$CONTINUE" == "1"]]; then
+    run_luks
+else
+    echo "Skipping..."
+fi
+
+CONTINUE="$(run_confirm 'run_open_luks')"
+if [[ "$CONTINUE" == "1"]]; then
+    run_open_luks
+else
+    echo "Skipping..."
+fi
+
+CONTINUE="$(run_confirm 'run_zfs')"
+if [[ "$CONTINUE" == "1"]]; then
+    run_zfs
+else
+    echo "Skipping..."
+fi
+
+CONTINUE="$(run_confirm 'run_mount_zfs')"
+if [[ "$CONTINUE" == "1"]]; then
+    run_mount_zfs
+else
+    echo "Skipping..."
+fi
+
+CONTINUE="$(run_confirm 'run_generatefstab')"
+if [[ "$CONTINUE" == "1"]]; then
+    run_generatefstab
+else
+    echo "Skipping..."
+fi
