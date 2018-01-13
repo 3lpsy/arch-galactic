@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source conf.sh
+export MOUNT_PATH="/mnt/galactic"
 
 pacstrap -i $MOUNT_PATH base base-devel vim git xterm wget openbsd-netcat openssh dnscrypt-proxy dnsmasq dnsutils xorg-server xorg-xinit xf86-video-amdgpu  mesa-vdpau libpau-va-gl compton i3 feh termite firefox mpv mps-youtuve youtube-dl
 
