@@ -6,7 +6,7 @@ export TARGET_PART_BOOT="/dev/nvme0n1p1"
 export TARGET_PART_ROOT="/dev/nvme0n1p2"
 export ENC_NAME="enc"
 export POOL_NAME='rpool'
-export RPOOL_DEV="dev/mapper/$ENC_NAME"
+export RPOOL_DEV="/dev/mapper/$ENC_NAME"
 export MOUNT_PATH="/mnt/galactic"
 
 set -e
@@ -44,7 +44,7 @@ function run_luks() {
     echo "##### Cryptsetup $TARGET_PART_ROOT ######"echo "yes"
 
     echo "# Encrypt root"
-    cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 "$TARGET_PART_ROOT"
+    cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 "1" ]] "$TARGET_PART_ROOT"
 }
 
 function run_open_luks() {
@@ -262,42 +262,42 @@ function run_confirm() {
 }
 
 CONTINUE="$(run_confirm 'run_partition')"
-if [[ "$CONTINUE" == "1"]]; then
+if [[ "$CONTINUE" == "1" ]]; then
     run_partition
 else
     echo "Skipping..."
 fi
 
 CONTINUE="$(run_confirm 'run_luks')"
-if [[ "$CONTINUE" == "1"]]; then
+if [[ "$CONTINUE" == "1" ]]; then
     run_luks
 else
     echo "Skipping..."
 fi
 
 CONTINUE="$(run_confirm 'run_open_luks')"
-if [[ "$CONTINUE" == "1"]]; then
+if [[ "$CONTINUE" == "1" ]]; then
     run_open_luks
 else
     echo "Skipping..."
 fi
 
 CONTINUE="$(run_confirm 'run_zfs')"
-if [[ "$CONTINUE" == "1"]]; then
+if [[ "$CONTINUE" == "1" ]]; then
     run_zfs
 else
     echo "Skipping..."
 fi
 
 CONTINUE="$(run_confirm 'run_mount_zfs')"
-if [[ "$CONTINUE" == "1"]]; then
+if [[ "$CONTINUE" == "1" ]]; then
     run_mount_zfs
 else
     echo "Skipping..."
 fi
 
 CONTINUE="$(run_confirm 'run_generatefstab')"
-if [[ "$CONTINUE" == "1"]]; then
+if [[ "$CONTINUE" == "1" ]]; then
     run_generatefstab
 else
     echo "Skipping..."
