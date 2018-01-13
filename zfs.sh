@@ -7,7 +7,7 @@ RPOOL_DEV="/dev/mapper/$ENC_NAME"
 function createrootpool () {
     echo "# Creating Root $1 "
     echo "# $ zpool create -o ashift=12 $1 $2"
-    zpool create -o ashift=12 -R /mnt $1 $2
+    zpool create -o ashift=12 -R $MOUNT_PATH $1 $2
     echo
 }
 
@@ -83,8 +83,8 @@ function getzpoolid() {
 
 function importzpool() {
     POOL_ID=$(getzpoolid $1)
-    echo "# zpool import $POOL_ID -R /mnt $POOL_NAME"
-    zpool import $POOL_ID -R /mnt $POOL_NAME
+    echo "# zpool import $POOL_ID -R $MOUNT_PATH $POOL_NAME"
+    zpool import $POOL_ID -R $MOUNT_PATH $POOL_NAME
 }
 
 function getbootuuid() {
@@ -139,10 +139,10 @@ zpool export $POOL_NAME
 
 importzpool $POOL_NAME
 
-zfs umount /mnt/tmp
-zfs umount /mnt/home
+zfs umount $MOUNT_PATH/tmp
+zfs umount $MOUNT_PATH/home
 
-mount -t zfs $POOL_NAME/ROOT/default /mnt
+mount -t zfs $POOL_NAME/ROOT/default $MOUNT_PATH
 
 CACHE_FILE="/etc/zfs/zpool.cache"
 
@@ -153,23 +153,23 @@ else
     zpool set cachefile=/etc/zfs/zpool.cache rpool
 fi
 
-if [ ! -d "/mnt/etc" ]; then
-    echo "Makine /mnt/etc"
-    mkdir /mnt/etc
+if [ ! -d "$MOUNT_PATH/etc" ]; then
+    echo "Makine $MOUNT_PATH/etc"
+    mkdir $MOUNT_PATH/etc
 fi
-if [ ! -d "/mnt/etc/zfs" ]; then
-    echo "Making /mnt/etc/zfs"
-    mkdir /mnt/etc/zfs
+if [ ! -d "$MOUNT_PATH/etc/zfs" ]; then
+    echo "Making $MOUNT_PATH/etc/zfs"
+    mkdir $MOUNT_PATH/etc/zfs
 fi
 
-cp /etc/zfs/zpool.cache /mnt/etc/zfs/zpool.cache
+cp /etc/zfs/zpool.cache $MOUNT_PATH/etc/zfs/zpool.cache
 
 echo "Making mout directories home,boot,var,usr,tmp"
-mkdir /mnt/{home,boot,var,usr,tmp}
+mkdir $MOUNT_PATH/{home,boot,var,usr,tmp}
 
 echo "# Mouting directory boot,var,usr"
-mount $TARGET_PART_BOOT /mnt/boot
-mount -t zfs $POOL_NAME/SYSTEM/var /mnt/var && mount -t zfs $POOL_NAME/SYSTEM/usr /mnt/usr
+mount $TARGET_PART_BOOT $MOUNT_PATH/boot
+mount -t zfs $POOL_NAME/SYSTEM/var $MOUNT_PATH/var && mount -t zfs $POOL_NAME/SYSTEM/usr $MOUNT_PATH/usr
 
 echo "# Mouting directory home,tmp"
 
@@ -183,4 +183,4 @@ zfs mount
 #BOOT_FSTAB_ENTRY="$(getbootstabentry)"
 #echo "# $BOOT_FSTAB_ENTRY"
 
-genfstab -U -p /mnt >> /mnt/etc/fstab
+genfstab -U -p $MOUNT_PATH >> $MOUNT_PATH/etc/fstab

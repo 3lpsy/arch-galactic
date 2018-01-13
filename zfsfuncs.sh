@@ -3,7 +3,7 @@
 function createrootpool () {
     echo "# Creating Root $1 "
     echo "# $ zpool create -o ashift=12 $1 $2"
-    zpool create -o ashift=12 -R /mnt $1 $2
+    zpool create -o ashift=12 -R $MOUNT_PATH $1 $2
     echo
 }
 
@@ -79,8 +79,8 @@ function getzpoolid() {
 
 function importzpool() {
     POOL_ID=$(getzpoolid $1)
-    echo "# zpool import $POOL_ID -R /mnt $POOL_NAME"
-    zpool import $POOL_ID -R /mnt $POOL_NAME
+    echo "# zpool import $POOL_ID -R $MOUNT_PATH $POOL_NAME"
+    zpool import $POOL_ID -R $MOUNT_PATH $POOL_NAME
 }
 
 function getbootuuid() {
