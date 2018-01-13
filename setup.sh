@@ -41,7 +41,7 @@ function run_partition() {
 
 # luks.sh
 function run_luks() {
-    echo "##### Cryptsetup $TARGET_PART_ROOT ######"
+    echo "##### Cryptsetup $TARGET_PART_ROOT ######"echo "yes"
 
     echo "# Encrypt root"
     cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 "$TARGET_PART_ROOT"
@@ -258,7 +258,7 @@ function run_confirm() {
 run_confirm "Run partition.sh"
 run_partition
 run_confirm "Run luks.sh"
-run_partition
+run_luks
 run_confirm "Run zfs.sh"
 run_zfs
 run_confirm "Run generatefstab.sh"
