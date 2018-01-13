@@ -45,7 +45,9 @@ function run_luks() {
 
     echo "# Encrypt root"
     cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 "$TARGET_PART_ROOT"
+}
 
+function run_open_luks() {
     echo "# Open partition"
     cryptsetup open --type luks "$TARGET_PART_ROOT" $ENC_NAME
 }
@@ -190,6 +192,9 @@ function run_zfs() {
     zfs umount $MOUNT_PATH/tmp
     zfs umount $MOUNT_PATH/home
 
+}
+
+function run_mount_zfs() {
     mount -t zfs $POOL_NAME/ROOT/default $MOUNT_PATH
 
     CACHE_FILE="/etc/zfs/zpool.cache"
@@ -259,7 +264,11 @@ run_confirm "Run partition.sh"
 run_partition
 run_confirm "Run luks.sh"
 run_luks
+run_confirm "Run open_luks.sh"
+run_open_luks
 run_confirm "Run zfs.sh"
 run_zfs
+run_confirm "Run mount_zfs.sh"
+run_mount_zfs
 run_confirm "Run generatefstab.sh"
 run_generatefstab
