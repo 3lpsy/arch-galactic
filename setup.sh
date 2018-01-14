@@ -284,8 +284,9 @@ END
 }
 
 function command_to_function() {
-    $original="$1"
-    echo -n "run_$(echo -n $original | sed 's/_/-/g')"
+    original="$1"
+    subbed="$(echo -n $original | sed 's/_/-/g')"
+    echo -n "run_$subbed"
 }
 
 commands=("partition" "luks" "open-luks" "zfs" "mount-zfs" "generatefstab")
