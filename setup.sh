@@ -277,13 +277,15 @@ function print_usage() {
     -z - setup zfs on ${TARGET_DISK} and ${MOUNT_PATH}
     -m - mount zfs on ${MOUNT_PATH'}
     -g - generate fstab
+    -u - unmiont zfs
+    -c - close luks
 
 END
 }
 
 function command_to_function() {
     $original="$1"
-    echo -n "run_$(echo $original | sed -i 's/_/-/g')"
+    echo -n "run_$(echo -n $original | sed 's/_/-/g')"
 }
 
 commands=("partition" "luks" "open-luks" "zfs" "mount-zfs" "generatefstab")
