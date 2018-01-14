@@ -162,8 +162,7 @@ function run_zfs() {
     importzpool $POOL_NAME
 
     echo "Unmounting tmp and home"
-    zfs umount $MOUNT_PATH/tmp
-    zfs umount $MOUNT_PATH/home
+    run_unmount_zfs
 }
 
 function run_mount_zfs() {
@@ -218,6 +217,7 @@ function run_unmount_zfs() {
     echo "Unmounting tmp and home"
     zfs umount $MOUNT_PATH/tmp
     zfs umount $MOUNT_PATH/home
+    zfs unmount -a
 }
 
 function run_close_luks() {
@@ -319,7 +319,7 @@ elif [[ ${#@} -gt 0 ]]; then
     DO_RUN_CLOSE_LUKS=0
     while getopts "plozmguc" opt; do
         case "${opt}" in
-        p) DO_RUN_PARTIONION=1 ;;
+        p) DO_RUN_PARTITION=1 ;;
         l) DO_RUN_LUKS=1 ;;
         o) DO_RUN_OPEN_LUKS=1 ;;
         m) DO_RUN_MOUNT_ZFS=1 ;;
