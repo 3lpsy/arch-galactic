@@ -285,7 +285,7 @@ END
 
 function command_to_function() {
     original="$1"
-    subbed="$(echo -n $original | sed 's/_/-/g')"
+    subbed="$(echo -n $original | sed 's/-/_/g')"
     echo -n "run_$subbed"
 }
 
