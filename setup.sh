@@ -9,8 +9,6 @@ export POOL_NAME='rpool'
 export RPOOL_DEV="/dev/mapper/$ENC_NAME"
 export MOUNT_PATH="/mnt/galactic"
 
-set -e
-
 if [[ ! -d $MOUNT_PATH ]]; then
     echo "Making directory: $MOUNT_PATH"
     mkdir $MOUNT_PATH
@@ -105,7 +103,6 @@ function zpoollist() {
     echo "---"
     echo ""
 }
-
 
 function addtostab() {
     echo "$1    $2  $3  $4  $5  $6" >> /etc/fstab
