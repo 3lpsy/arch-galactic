@@ -275,11 +275,12 @@ function run_confirm() {
 function print_usage() {
     cat > /dev/stdout << END
     OPTIONAL ARGS:
-    --all - script to run just before actually performing test
+    --auto - script to run just before actually performing test
     -p - parition disk ${TARGET_DISK}
     -l - setup luks disk on ${TARGET_DISK}
     -o - open luks parition
     -z - setup zfs on ${TARGET_DISK} and ${MOUNT_PATH}
+    -i - import zfs pool
     -m - mount zfs on ${MOUNT_PATH'}
     -g - generate fstab
     -u - unmiont zfs
@@ -310,7 +311,7 @@ function run_all() {
     done
 }
 
-if [[ "$1" == "--all" ]]; then
+if [[ "$1" == "--auto" ]]; then
     run_all;
     exit
 elif [[ ${#@} -gt 0 ]]; then
