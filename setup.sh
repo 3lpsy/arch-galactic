@@ -324,7 +324,7 @@ elif [[ ${#@} -gt 0 ]]; then
     DO_RUN_GENERATEFSTAB=0
     DO_RUN_UNMOUNT_ZFS=0
     DO_RUN_CLOSE_LUKS=0
-    while getopts "plozmguc" opt; do
+    while getopts "plozimguc" opt; do
         case "${opt}" in
         p) DO_RUN_PARTITION=1 ;;
         l) DO_RUN_LUKS=1 ;;
