@@ -53,24 +53,15 @@ function run_open_luks() {
     cryptsetup open --type luks "$TARGET_PART_ROOT" $ENC_NAME
 }
 
-function createrootpool () {
-    echo "# Creating Root $1 "
-    echo "# $ zpool create -o ashift=12 $1 $2"
-    zpool create -o ashift=12 -R $MOUNT_PATH $1 $2
-    echo
-}
-
 function newpool() {
-    echo ""
     echo "# Creating Pool: $1"
-    echo "# $ zfs create -o mountpoint=none $1"
+    echo "## $ zfs create -o mountpoint=none $1"
     zfs create -o mountpoint=$2 $1
 }
 
 function newcomppool() {
-    echo
     echo "# Creating Legacy Pool: $1"
-    echo "# $ zfs create -o -o compression=lz4 -o mountpoint=$2 $1"
+    echo "## $ zfs create -o -o compression=lz4 -o mountpoint=$2 $1"
     zfs create -o compression=lz4 -o mountpoint=$2 $1
 }
 
@@ -123,16 +114,20 @@ function importzpool() {
 }
 
 function run_zfs() {
-    echo "Creating ROOT pool..."
-    createrootpool $POOL_NAME $RPOOL_DEV
+    echo "# Creating Root $1 "
+    echo "# $ zpool create -o ashift=12 -R $MOUNT_PATH $POOL_NAME $RPOOL_DEV2"
+    zpool create -o ashift=12 -R $MOUNT_PATH $POOL_NAME $RPOOL_DEV
+    echo ""
 
     echo "Creating ROOT datasets..."
     newpool $POOL_NAME/ROOT none
     newcomppool $POOL_NAME/ROOT/default /
+    echo ""
 
     echo "Creating DATA (sharable) datasets..."
     newpool $POOL_NAME/DATA none
     newcomppool $POOL_NAME/DATA/home /home
+    echo ""
 
     echo "Creating SYSTEM datasets..."
     newpool $POOL_NAME/SYSTEM none
@@ -150,23 +145,32 @@ function run_zfs() {
     systemctl mask tmp.mount
     zfs umount -a
 
-    setbootfs $POOL_NAME/ROOT
+    echo ""
+
+    echo "Setting bootfs $1 for $POOL_NAME"
+    zpool set bootfs=$1 $POOL_NAME
+    echo ""
 
     zfslist
     zpoollist
 
+    echo ""
+    echo "Exporting Pool"
     zpool export $POOL_NAME
 
+    echo "Importing Pool"
     importzpool $POOL_NAME
 
+    echo "Unmounting tmp and home"
     zfs umount $MOUNT_PATH/tmp
     zfs umount $MOUNT_PATH/home
-
 }
 
 function run_mount_zfs() {
+    echo "Mounting default pool on mount path"
     mount -t zfs $POOL_NAME/ROOT/default $MOUNT_PATH
-
+    echo ""
+    echo "Configuring cache"
     CACHE_FILE="/etc/zfs/zpool.cache"
 
     if [ -f $CACHE_FILE ]; then
@@ -176,15 +180,19 @@ function run_mount_zfs() {
         zpool set cachefile=/etc/zfs/zpool.cache rpool
     fi
 
+    echo ""
+
     if [ ! -d "$MOUNT_PATH/etc" ]; then
-        echo "Makine $MOUNT_PATH/etc"
+        echo "Making $MOUNT_PATH/etc"
         mkdir $MOUNT_PATH/etc
     fi
+    echo ""
     if [ ! -d "$MOUNT_PATH/etc/zfs" ]; then
         echo "Making $MOUNT_PATH/etc/zfs"
         mkdir $MOUNT_PATH/etc/zfs
     fi
 
+    echo "Copying cache"
     cp /etc/zfs/zpool.cache $MOUNT_PATH/etc/zfs/zpool.cache
 
     echo "Making mout directories home,boot,var,usr,tmp"
@@ -192,16 +200,18 @@ function run_mount_zfs() {
 
     echo "# Mouting directory boot,var,usr"
     mount $TARGET_PART_BOOT $MOUNT_PATH/boot
-    mount -t zfs $POOL_NAME/SYSTEM/var $MOUNT_PATH/var && mount -t zfs $POOL_NAME/SYSTEM/usr $MOUNT_PATH/usr
+    mount -t zfs $POOL_NAME/SYSTEM/var $MOUNT_PATH/var
+    mount -t zfs $POOL_NAME/SYSTEM/usr $MOUNT_PATH/usr
 
     echo "# Mouting directory home,tmp"
-
-    zfs mount $POOL_NAME/DATA/home && zfs mount $POOL_NAME/SYSTEM/tmp
+    zfs mount $POOL_NAME/DATA/home
+    zfs mount $POOL_NAME/SYSTEM/tmp
 
     echo ""
     echo "Check mount..."
 
     zfs mount
+    echo ""
 }
 
 function addtostab() {
