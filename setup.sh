@@ -47,7 +47,7 @@ function run_luks() {
     echo "##### Cryptsetup $TARGET_PART_ROOT ######"echo "yes"
 
     echo "# Encrypt root"
-    cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 "1" ]] "$TARGET_PART_ROOT"
+    cryptsetup luksFormat -c aes-xts-plain64 -s 512 -h sha512 "$TARGET_PART_ROOT"
 }
 
 function run_open_luks() {
@@ -154,19 +154,20 @@ function getbootstabentry() {
 
 
 function run_zfs() {
+    echo "Creating ROOT pool..."
     createrootpool $POOL_NAME $RPOOL_DEV
+
     echo "Creating ROOT datasets..."
     newpool $POOL_NAME/ROOT none
     newcomppool $POOL_NAME/ROOT/default /
     addlegacytofstab $POOL_NAME/ROOT/default /
-    echo "Creating DATA (sharable) datasets..."
 
+    echo "Creating DATA (sharable) datasets..."
     newpool $POOL_NAME/DATA none
     newcomppool $POOL_NAME/DATA/home /home
 
     echo "Creating SYSTEM datasets..."
     newpool $POOL_NAME/SYSTEM none
-
     newpool $POOL_NAME/SYSTEM/var legacy
     zfsset $POOL_NAME/SYSTEM/var xattr sa
     addlegacytofstab $POOL_NAME/SYSTEM/var /var
