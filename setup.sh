@@ -115,7 +115,7 @@ function importzpool() {
 
 function run_import_zfs() {
     echo "Attempting zfs import.."
-    importzpool
+    importzpool $POOL_NAME
 }
 
 function run_zfs() {
