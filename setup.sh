@@ -329,7 +329,7 @@ elif [[ ${#@} -gt 0 ]]; then
         l) DO_RUN_LUKS=1 ;;
         o) DO_RUN_OPEN_LUKS=1 ;;
         z) DO_RUN_ZFS=1 ;;
-        z) DO_RUN_IMPORT_ZFS=1 ;;
+        i) DO_RUN_IMPORT_ZFS=1 ;;
         m) DO_RUN_MOUNT_ZFS=1 ;;
         g) DO_RUN_GENERATEFSTAB=1 ;;
         u) DO_RUN_UNMOUNT_ZFS=1 ;;
