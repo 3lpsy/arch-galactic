@@ -7,7 +7,7 @@ export TARGET_PART_ROOT="/dev/nvme0n1p2"
 export ENC_NAME="enc"
 export POOL_NAME='rpool'
 export RPOOL_DEV="/dev/mapper/$ENC_NAME"
-export MOUNT_PATH="/mnt/galactic"
+export MOUNT_PATH="/mnt"
 
 if [[ ! -d $MOUNT_PATH ]]; then
     echo "Making directory: $MOUNT_PATH"
@@ -104,19 +104,6 @@ function zpoollist() {
     echo ""
 }
 
-function addtostab() {
-    echo "$1    $2  $3  $4  $5  $6" >> /etc/fstab
-}
-
-function addlegacytofstab() {
-    TARG="$1"
-    MON="$2"
-    TYP="zfs"
-    OPTIONS="rw,relatime,xattr,noacl"
-    AT="0"
-    RELA="0"
-    addtostab $TARG $MON $TYPE $OPTIONS $AT $RELA
-}
 
 function getzpoolid() {
     POOLS="$(zpool import)"
@@ -135,21 +122,6 @@ function importzpool() {
     zpool import $POOL_ID -R $MOUNT_PATH $POOL_NAME
 }
 
-function getbootuuid() {
-    echo "getbootuuid"
-}
-
-function getbootstabentry() {
-    TARG="UUID=$(getbootuuid)"
-    MON="rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro"
-    TYP="vfat"
-    OPTIONS="rw,relatime,xattr,noacl"
-    AT="0"
-    RELA="0"
-    echo "TARG MON TYPE OPTIONS AT RELA"
-}
-
-
 function run_zfs() {
     echo "Creating ROOT pool..."
     createrootpool $POOL_NAME $RPOOL_DEV
@@ -157,7 +129,6 @@ function run_zfs() {
     echo "Creating ROOT datasets..."
     newpool $POOL_NAME/ROOT none
     newcomppool $POOL_NAME/ROOT/default /
-    addlegacytofstab $POOL_NAME/ROOT/default /
 
     echo "Creating DATA (sharable) datasets..."
     newpool $POOL_NAME/DATA none
@@ -167,10 +138,8 @@ function run_zfs() {
     newpool $POOL_NAME/SYSTEM none
     newpool $POOL_NAME/SYSTEM/var legacy
     zfsset $POOL_NAME/SYSTEM/var xattr sa
-    addlegacytofstab $POOL_NAME/SYSTEM/var /var
 
     newpool $POOL_NAME/SYSTEM/usr legacy
-    addlegacytofstab $POOL_NAME/SYSTEM/usr /usr
 
     newpool $POOL_NAME/SYSTEM/tmp /tmp
     zfsset $POOL_NAME/SYSTEM/tmp sync disabled
@@ -235,9 +204,25 @@ function run_mount_zfs() {
     zfs mount
 }
 
+function addtostab() {
+    echo "$1    $2  $3  $4  $5  $6" >> /etc/fstab
+}
+
+function addlegacytofstab() {
+    TARG="$1"
+    MON="$2"
+    TYP="zfs"
+    OPTIONS="rw,relatime,xattr,noacl"
+    AT="0"
+    RELA="0"
+    addtostab $TARG $MON $TYPE $OPTIONS $AT $RELA
+}
+
+
 function run_generatefstab() {
-    #BOOT_FSTAB_ENTRY="$(getbootstabentry)"
-    #echo "# $BOOT_FSTAB_ENTRY"
+    addlegacytofstab $POOL_NAME/ROOT/default /
+    addlegacytofstab $POOL_NAME/SYSTEM/var /var
+    addlegacytofstab $POOL_NAME/SYSTEM/usr /usr
     genfstab -U -p $MOUNT_PATH >> $MOUNT_PATH/etc/fstab
 }
 
@@ -262,44 +247,17 @@ function run_confirm() {
     esac
 }
 
-CONTINUE="$(run_confirm 'run_partition')"
-if [[ "$CONTINUE" == "1" ]]; then
-    run_partition
-else
-    echo "Skipping..."
-fi
+commands=("run_partition" "run_luks" "run_open_luks" "run_zfs" "run_mount_zfs" "run_generatefstab")
 
-CONTINUE="$(run_confirm 'run_luks')"
-if [[ "$CONTINUE" == "1" ]]; then
-    run_luks
-else
-    echo "Skipping..."
-fi
-
-CONTINUE="$(run_confirm 'run_open_luks')"
-if [[ "$CONTINUE" == "1" ]]; then
-    run_open_luks
-else
-    echo "Skipping..."
-fi
-
-CONTINUE="$(run_confirm 'run_zfs')"
-if [[ "$CONTINUE" == "1" ]]; then
-    run_zfs
-else
-    echo "Skipping..."
-fi
-
-CONTINUE="$(run_confirm 'run_mount_zfs')"
-if [[ "$CONTINUE" == "1" ]]; then
-    run_mount_zfs
-else
-    echo "Skipping..."
-fi
-
-CONTINUE="$(run_confirm 'run_generatefstab')"
-if [[ "$CONTINUE" == "1" ]]; then
-    run_generatefstab
-else
-    echo "Skipping..."
+if [[ "${#@}" == "0" ]]; then
+    for command in "${commands[@]}"; do
+        while true: do
+            read -p "Perform: $command [Yes(y)/No(n)]?" choice
+            case "$choice" in
+              y|Y ) $command; break;;
+              n|N ) echo "Skipping $command"; break;;
+              *) echo "Please answer Y/N";;
+            esac
+        done
+    done
 fi
