@@ -113,6 +113,11 @@ function importzpool() {
     zpool import $POOL_ID -R $MOUNT_PATH $POOL_NAME
 }
 
+function run_import_zfs() {
+    echo "Attempting zfs import.."
+    importzpool
+}
+
 function run_zfs() {
     echo "# Creating Root $1 "
     echo "# $ zpool create -o ashift=12 -R $MOUNT_PATH $POOL_NAME $RPOOL_DEV2"
@@ -313,6 +318,7 @@ elif [[ ${#@} -gt 0 ]]; then
     DO_RUN_LUKS=0
     DO_RUN_OPEN_LUKS=0
     DO_RUN_ZFS=0
+    DO_RUN_IMPORT_ZFS=0
     DO_RUN_MOUNT_ZFS=0
     DO_RUN_GENERATEFSTAB=0
     DO_RUN_UNMOUNT_ZFS=0
@@ -323,6 +329,7 @@ elif [[ ${#@} -gt 0 ]]; then
         l) DO_RUN_LUKS=1 ;;
         o) DO_RUN_OPEN_LUKS=1 ;;
         z) DO_RUN_ZFS=1 ;;
+        z) DO_RUN_IMPORT_ZFS=1 ;;
         m) DO_RUN_MOUNT_ZFS=1 ;;
         g) DO_RUN_GENERATEFSTAB=1 ;;
         u) DO_RUN_UNMOUNT_ZFS=1 ;;
@@ -349,6 +356,12 @@ elif [[ ${#@} -gt 0 ]]; then
     fi
     if [[ $DO_RUN_ZFS -gt 0 ]]; then
         func="$(command_to_function zfs)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_IMPORT_ZFS -gt 0 ]]; then
+        func="$(command_to_function import-zfs)"
         echo "# Running $func"
         $func
         echo ""
