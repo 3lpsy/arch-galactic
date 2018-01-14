@@ -329,7 +329,7 @@ elif [[ ${#@} -gt 0 ]]; then
         esac
     done
     if [[ $DO_RUN_PARTITION -gt 0 ]]; then
-        func="$(command_to_function parition)"
+        func="$(command_to_function partition)"
         echo "# Running $func"
         $func
         echo ""
