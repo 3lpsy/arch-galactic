@@ -137,7 +137,7 @@ function run_zfs() {
     newpool $POOL_NAME/SYSTEM/usr legacy
 
     newpool $POOL_NAME/SYSTEM/tmp /tmp
-    zfsset $POOL_NAME/SYSTEM/tmp sync disabled
+    zfsset $POOL_NAME/SYSTEM/tmp sync disabledzfs
     zfsset $POOL_NAME/SYSTEM/tmp setuid off
     zfsset $POOL_NAME/SYSTEM/tmp devices off
 
@@ -214,6 +214,16 @@ function run_mount_zfs() {
     echo ""
 }
 
+function run_unmount_zfs() {
+    echo "Unmounting tmp and home"
+    zfs umount $MOUNT_PATH/tmp
+    zfs umount $MOUNT_PATH/home
+}
+
+function run_close_luks() {
+    cryptsetup close $RPOOL_DEV
+}
+
 function addtostab() {
     echo "$1    $2  $3  $4  $5  $6" >> /etc/fstab
 }
@@ -257,17 +267,112 @@ function run_confirm() {
     esac
 }
 
-commands=("run_partition" "run_luks" "run_open_luks" "run_zfs" "run_mount_zfs" "run_generatefstab")
+function print_usage() {
+    cat > /dev/stdout << END
+    OPTIONAL ARGS:
+    --all - script to run just before actually performing test
+    -p - parition disk ${TARGET_DISK}
+    -l - setup luks disk on ${TARGET_DISK}
+    -o - open luks parition
+    -z - setup zfs on ${TARGET_DISK} and ${MOUNT_PATH}
+    -m - mount zfs on ${MOUNT_PATH'}
+    -g - generate fstab
 
-if [[ "${#@}" == "0" ]]; then
+END
+}
+
+function command_to_function() {
+    $original="$1"
+    echo -n "run_$(echo $original | sed -i 's/_/-/g')"
+}
+
+commands=("partition" "luks" "open-luks" "zfs" "mount-zfs" "generatefstab")
+
+function run_all() {
     for command in "${commands[@]}"; do
-        while true: do
+        while true; do
             read -p "Perform: $command [Yes(y)/No(n)]?" choice
+            func="$(command_to_function $command)"
             case "$choice" in
-              y|Y ) $command; break;;
+              y|Y ) $func; break;;
               n|N ) echo "Skipping $command"; break;;
               *) echo "Please answer Y/N";;
             esac
         done
     done
+}
+
+if [[ "$1" == "--all" ]]; then
+    run_all;
+    exit
+elif [[ ${#@} -gt 0 ]]; then
+    DO_RUN_PARTITION=0
+    DO_RUN_LUKS=0
+    DO_RUN_OPEN_LUKS=0
+    DO_RUN_ZFS=0
+    DO_RUN_MOUNT_ZFS=0
+    DO_RUN_GENERATEFSTAB=0
+    DO_RUN_UNMOUNT_ZFS=0
+    DO_RUN_CLOSE_LUKS=0
+    while getopts "plozmguc" opt; do
+        case "${opt}" in
+        p) DO_RUN_PARTIONION=1 ;;
+        l) DO_RUN_LUKS=1 ;;
+        o) DO_RUN_OPEN_LUKS=1 ;;
+        m) DO_RUN_MOUNT_ZFS=1 ;;
+        g) DO_RUN_GENERATEFSTAB=1 ;;
+        u) DO_RUN_UNMOUNT_ZFS=1 ;;
+        c) DO_RUN_CLOSE_LUKS=1 ;;
+        esac
+    done
+    if [[ $DO_RUN_PARTITION -gt 0 ]]; then
+        func="$(command_to_function parition)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_LUKS -gt 0 ]]; then
+        func="$(command_to_function luks)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_OPEN_LUKS -gt 0 ]]; then
+        func="$(command_to_function open-luks)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_ZFS -gt 0 ]]; then
+        func="$(command_to_function zfs)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_MOUNT_ZFS -gt 0 ]]; then
+        func="$(command_to_function mount-zfs)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_GENERATEFSTAB -gt 0 ]]; then
+        func="$(command_to_function generatefstab)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_UNMOUNT_ZFS -gt 0 ]]; then
+        func="$(command_to_function unmount-zfs)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+    if [[ $DO_RUN_CLOSE_LUKS -gt 0 ]]; then
+        func="$(command_to_function close-luks)"
+        echo "# Running $func"
+        $func
+        echo ""
+    fi
+else
+    print_usage
 fi
